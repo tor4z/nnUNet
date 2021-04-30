@@ -1,4 +1,4 @@
-#    Copyright 2019 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 
 import numpy as np
 import torch
-from nnunet.training.loss_functions.ND_Crossentropy import CrossentropyND
+from nnunet.training.loss_functions.crossentropy import RobustCrossEntropyLoss
 
 
-class TopKLoss(CrossentropyND):
+class TopKLoss(RobustCrossEntropyLoss):
     """
     Network has to have NO LINEARITY!
     """

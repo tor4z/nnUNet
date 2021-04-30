@@ -1,4 +1,4 @@
-#    Copyright 2019 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
 #    limitations under the License.
 
 import torch
+from torch import nn
+import torch.nn.functional as F
 
 
-def softmax_helper(x):
-    rpt = [1 for _ in range(len(x.size()))]
-    rpt[1] = x.size(1)
-    x_max = x.max(1, keepdim=True)[0].repeat(*rpt)
-    e_x = torch.exp(x - x_max)
-    return e_x / e_x.sum(1, keepdim=True).repeat(*rpt)
+softmax_helper = lambda x: F.softmax(x, 1)
+

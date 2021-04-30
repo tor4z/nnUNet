@@ -1,4 +1,4 @@
-#    Copyright 2019 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ def summarize_plans(file):
 
 
 def write_plans_to_file(f, plans_file):
+    print(plans_file)
     a = load_pickle(plans_file)
     stages = list(a['plans_per_stage'].keys())
     stages.sort()
@@ -61,25 +62,18 @@ def write_plans_to_file(f, plans_file):
 
 
 if __name__ == "__main__":
-    base_dir = preprocessing_output_dir
-    task_dirs = [i for i in subdirs(preprocessing_output_dir, join=False, prefix="Task") if i.find("BrainTumor") == -1 and i.find("MSSeg") == -1]
+    base_dir = './'#preprocessing_output_dir''
+    task_dirs = [i for i in subdirs(base_dir, join=False, prefix="Task") if i.find("BrainTumor") == -1 and i.find("MSSeg") == -1]
     print("found %d tasks" % len(task_dirs))
-    """for t in task_dirs:
-        print(t, "\n")
-        tmp = join(preprocessing_output_dir, t)
-        print("##### 2D #####")
-        summarize_plans(join(tmp, my_plans_identifier + "_plans_2D.pkl"))
-        print("##### 3D #####")
-        summarize_plans(join(tmp, my_plans_identifier + "_plans_3D.pkl"))
-        print("-------------------------------------------------------\n")"""
 
     with open("2019_02_06_plans_summary.csv", 'w') as f:
         f.write("task;plans_file;stage;batch_size;num_pool_per_axis;patch_size;patch_size(mm);median_patient_size_in_voxels;median_patient_size_in_mm;current_spacing;original_spacing;pool_op_kernel_sizes;conv_kernel_sizes\n")
         for t in task_dirs:
             print(t)
-            tmp = join(preprocessing_output_dir, t)
+            tmp = join(base_dir, t)
             plans_files = [i for i in subfiles(tmp, suffix=".pkl", join=False) if i.find("_plans_") != -1 and i.find("Dgx2") == -1]
             for p in plans_files:
                 write_plans_to_file(f, join(tmp, p))
+            f.write("\n")
 
 

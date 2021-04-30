@@ -1,7 +1,22 @@
+#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+
 import matplotlib
 from batchgenerators.utilities.file_and_folder_operations import maybe_mkdir_p, join
 from nnunet.network_architecture.neural_network import SegmentationNetwork
-from nnunet.training.data_augmentation.default_data_augmentation import get_no_augmentation
+from nnunet.training.data_augmentation.data_augmentation_noDA import get_no_augmentation
 from nnunet.training.dataloading.dataset_loading import unpack_dataset, DataLoader3D, DataLoader2D
 from nnunet.training.network_training.nnUNetTrainer import nnUNetTrainer
 from torch import nn
@@ -60,17 +75,14 @@ class nnUNetTrainerNoDA(nnUNetTrainer):
             else:
                 print("INFO: Not unpacking data! Training may be slow due to that. Pray you are not using 2d or you "
                       "will wait all winter for your model to finish!")
-            self.tr_gen, self.val_gen = get_no_augmentation(self.dl_tr, self.dl_val,
-                                                                 self.data_aug_params[
-                                                                     'patch_size_for_spatialtransform'],
-                                                                 self.data_aug_params)
+            self.tr_gen, self.val_gen = get_no_augmentation(self.dl_tr, self.dl_val, params=self.data_aug_params)
             self.print_to_log_file("TRAINING KEYS:\n %s" % (str(self.dataset_tr.keys())),
                                    also_print_to_console=False)
             self.print_to_log_file("VALIDATION KEYS:\n %s" % (str(self.dataset_val.keys())),
                                    also_print_to_console=False)
         else:
             pass
-        self.initialize_network_optimizer_and_scheduler()
+        self.initialize_network()
         assert isinstance(self.network, (SegmentationNetwork, nn.DataParallel))
         self.was_initialized = True
         self.data_aug_params['mirror_axes'] = ()

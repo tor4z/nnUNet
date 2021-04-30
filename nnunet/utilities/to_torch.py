@@ -1,4 +1,4 @@
-#    Copyright 2019 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -27,5 +27,5 @@ def to_cuda(data, non_blocking=True, gpu_id=0):
     if isinstance(data, list):
         data = [i.cuda(gpu_id, non_blocking=non_blocking) for i in data]
     else:
-        data = data.cuda(gpu_id, non_blocking=True)
+        data = data.cuda(gpu_id, non_blocking=non_blocking)
     return data
