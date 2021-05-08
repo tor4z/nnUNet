@@ -33,7 +33,6 @@ class nnUNetTrainerV2_MMS(nnUNetTrainerV2_insaneDA):
             conv_op = nn.Conv3d
             dropout_op = nn.Dropout3d
             norm_op = nn.BatchNorm3d
-
         else:
             conv_op = nn.Conv2d
             dropout_op = nn.Dropout2d

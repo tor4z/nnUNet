@@ -61,8 +61,9 @@ def generate_filename_for_nnunet(pat_id, ts, pat_folder=None, add_zeros=False, v
     return filename
 
 
-def select_annotated_frames_mms(data_folder, out_folder, add_zeros=False, mode='mnms', df_path="/media/full/tera2/data/challenges/mms/Training-corrected_original/M&Ms Dataset Information.xlsx"):
-    table = pd.read_excel(df_path, index_col='External code')
+def select_annotated_frames_mms(data_folder, out_folder, add_zeros=False, mode='mnms',
+                                df_path="/media/full/tera2/data/challenges/mms/Training-corrected_original/M&Ms Dataset Information.xlsx"):
+    table = pd.read_csv(df_path, index_col='External code')
 
     for idx in table.index:
         ed = table.loc[idx, 'ED']
@@ -86,6 +87,21 @@ def select_annotated_frames_mms(data_folder, out_folder, add_zeros=False, mode='
 
             shutil.copy(filename_ed_original, filename_ed)
             shutil.copy(filename_es_original, filename_es)
+
+        # # generate old filename (w/o vendor and centre)
+        # filename_ed_original = generate_filename_for_nnunet(pat_id=idx, ts=ed, pat_folder=data_folder,
+        #                                             vendor=None, centre=None, add_zeros=False)
+        # filename_es_original = generate_filename_for_nnunet(pat_id=idx, ts=es, pat_folder=data_folder,
+        #                                             vendor=None, centre=None, add_zeros=False)
+
+        # # generate new filename with vendor and centre
+        # filename_ed = generate_filename_for_nnunet(pat_id=idx, ts=ed, pat_folder=out_folder,
+        #                                             vendor=vendor, centre=centre, add_zeros=add_zeros, mode=mode)
+        # filename_es = generate_filename_for_nnunet(pat_id=idx, ts=es, pat_folder=out_folder,
+        #                                             vendor=vendor, centre=centre, add_zeros=add_zeros, mode=mode)
+
+        # shutil.copy(filename_ed_original, filename_ed)
+        # shutil.copy(filename_es_original, filename_es)
 
 
 def create_custom_splits_for_experiments(task_path):
@@ -183,15 +199,15 @@ def split_4d_for_all_pat(files_paths, split_folder):
 
 if __name__ == "__main__":
     task_name = "Task114_heart_MNMs"
-    train_dir = "/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/nnUnet_raw/nnUNet_raw_data/{}/imagesTr".format(task_name)
-    test_dir = "/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/nnUnet_raw/nnUNet_raw_data/{}/imagesTs".format(task_name)
+    # train_dir = "/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/nnUnet_raw/nnUNet_raw_data/{}/imagesTr".format(task_name)
+    # test_dir = "/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/nnUnet_raw/nnUNet_raw_data/{}/imagesTs".format(task_name)
     #out_dir='/media/full/tera2/output_nnUNet/preprocessed_data/Task114_heart_mnms'
-    out_dir='/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/tmp'
+    # out_dir='/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/tmp'
 
     # train
-    all_train_files = [os.path.join(train_dir, x) for x in os.listdir(train_dir)]
+    # all_train_files = [os.path.join(train_dir, x) for x in os.listdir(train_dir)]
     # test
-    all_test_files = [os.path.join(test_dir, x) for x in os.listdir(test_dir)]
+    # all_test_files = [os.path.join(test_dir, x) for x in os.listdir(test_dir)]
 
     data_root = '/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/data/challenges/mms/Training-corrected_original/Labeled'
     files_raw, files_gt = get_mnms_data(data_root=data_root)
@@ -256,4 +272,3 @@ if __name__ == "__main__":
     split_file_path = '/media/full/97d8d6e1-1aa1-4761-9dd1-fc6a62cf6264/output_nnUNet/preprocessed_data/{}/'.format(task_name)
 
     create_custom_splits_for_experiments(split_file_path)
-

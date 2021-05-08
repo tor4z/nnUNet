@@ -1,0 +1,28 @@
+PIP            := pip
+PYTHON         := python
+MOD_BG         := batchviewer
+MOD_BV         := batchgenerators
+MOD_NNUNET     := nnunet
+DIST_DIR       := dist
+MOD_BG_PKG     := $(DIST_DIR)/$(MOD_BG)*.whl
+MOD_BV_PKG     := $(DIST_DIR)/$(MOD_BV)*.whl
+MOD_NNUNET_PKG := $(DIST_DIR)/$(MOD_NNUNET)*.whl
+SERVER_CONF    := ./m4/server_conf.m4
+LAB_PORT       := 10035
+LAB_ADDR       := 0.0.0.0
+APP_DIR        := $(shell pwd)
+
+
+.PHONY: install clean
+
+
+install: $(MOD_BG_PKG) $(MOD_BV_PKG) $(MOD_NNUNET_PKG)
+	$(PIP) install -U $^
+
+
+lab:
+	nohup jupyter lab --port $(LAB_PORT) --ip=$(LAB_ADDR) --notebook-dir=$(APP_DIR) &
+
+
+clean:
+	-rm -rf $(DIST_DIR)

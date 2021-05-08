@@ -1,0 +1,6 @@
+[submodule "batchgenerators"]
+	path = batchgenerators
+	url = git@github.com:tor4z/batchgenerators.git
+[submodule "BatchViewer"]
+	path = BatchViewer
+	url = git@github.com:tor4z/BatchViewer.git

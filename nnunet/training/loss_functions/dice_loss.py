@@ -26,7 +26,8 @@ class GDL(nn.Module):
     def __init__(self, apply_nonlin=None, batch_dice=False, do_bg=True, smooth=1.,
                  square=False, square_volumes=False):
         """
-        square_volumes will square the weight term. The paper recommends square_volumes=True; I don't (just an intuition)
+        square_volumes will square the weight term. The paper recommends 
+        square_volumes=True; I don't (just an intuition)
         """
         super(GDL, self).__init__()
 
