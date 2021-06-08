@@ -27,10 +27,12 @@ from torch import nn
 
 class nnUNetTrainerV2_insaneDA(nnUNetTrainerV2):
     def setup_DA_params(self):
-        self.deep_supervision_scales = [[1, 1, 1]] + list(list(i) for i in 1 / np.cumprod(
-            np.vstack(self.net_num_pool_op_kernel_sizes), axis=0))[:-1]
+        # self.deep_supervision_scales = [[1, 1, 1]] + list(list(i) for i in 1 / np.cumprod(
+        #     np.vstack(self.net_num_pool_op_kernel_sizes), axis=0))[:-1]
+        self.deep_supervision_scales = None
 
         if self.threeD:
+            # Focus on 3D
             self.data_aug_params = default_3D_augmentation_params
             self.data_aug_params['rotation_x'] = (-30. / 360 * 2. * np.pi, 30. / 360 * 2. * np.pi)
             self.data_aug_params['rotation_y'] = (-30. / 360 * 2. * np.pi, 30. / 360 * 2. * np.pi)
@@ -103,7 +105,7 @@ class nnUNetTrainerV2_insaneDA(nnUNetTrainerV2):
             weights = weights / weights.sum()
 
             # now wrap the loss
-            self.loss = MultipleOutputLoss2(self.loss, weights)
+            # self.loss = MultipleOutputLoss2(self.loss, weights)
             ################# END ###################
 
             self.folder_with_preprocessed_data = join(self.dataset_directory, self.plans['data_identifier'] +

@@ -244,7 +244,32 @@ class nnUNetTrainerV2(nnUNetTrainer):
 
         if self.fp16:
             with autocast():
+                # print(data.shape, do_backprop)
                 output = self.network(data)
+                # print(type(output))
+                # print(len(output))
+                # print(output[0].shape)
+                # print(output[1].shape)
+                # print(output[2].shape)
+                # print(output[3].shape)
+                # print(output[4].shape)
+                # print(output[5].shape)
+                # print('====')
+                # print(type(data))
+                # print(len(data))
+                # print(data.shape)
+                # print('=====')
+                # print(type(target))
+                # print(len(target))
+                # print(target[0].shape)
+                # print(target[1].shape)
+                # print(target[2].shape)
+                # print(target[3].shape)
+                # print(target[4].shape)
+                # print(target[5].shape)
+                # print(target[0] - target[1])
+                # print((target[0] - target[1]).sum())
+                # print('============================')
                 del data
                 l = self.loss(output, target)
 
@@ -255,6 +280,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
                 self.amp_grad_scaler.step(self.optimizer)
                 self.amp_grad_scaler.update()
         else:
+            # print(data.shape, do_backprop)
             output = self.network(data)
             del data
             l = self.loss(output, target)

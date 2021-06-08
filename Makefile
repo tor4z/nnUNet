@@ -44,11 +44,11 @@ build_nn:
 
 
 build_mod_bg: $(MOD_BG)
-	$(PYTHON) -m build $^
+	$(PYTHON) -m build $(MOD_BG)
 
 
 build_mod_bv: $(MOD_BV)
-	$(PYTHON) -m build $^
+	$(PYTHON) -m build $(MOD_BV)
 
 
 collect_dist:
@@ -87,5 +87,5 @@ deploy: deploy_rtx1 deploy_rtx2 deploy_rtx3 deploy_rtx4
 
 
 clean:
-	-rm -rf ./**/dist ./**/build ./**/*.egg-info \
+	-rm -rf dist ./**/dist ./**/build ./**/*.egg-info \
 	dist build *.egg-info

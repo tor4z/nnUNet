@@ -34,22 +34,87 @@ except ImportError as ie:
     NonDetMultiThreadedAugmenter = None
 
 
-def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size, params=default_3D_augmentation_params,
-                              border_val_seg=-1,
-                              seeds_train=None, seeds_val=None, order_seg=1, order_data=3, deep_supervision_scales=None,
-                              soft_ds=False,
-                              classes=None, pin_memory=True, regions=None):
+def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size,
+                              params=default_3D_augmentation_params,
+                              border_val_seg=-1, seeds_train=None, seeds_val=None,
+                              order_seg=1, order_data=3, deep_supervision_scales=None,
+                              soft_ds=False, classes=None, pin_memory=True, regions=None):
     assert params.get('mirror') is None, "old version of params, use new keyword do_mirror"
 
     tr_transforms = []
+    
+    # 'patch_size': array([288, 320]),
+    # 'border_val_seg': -1,
+    # 'seeds_train': None,
+    # 'seeds_val': None,
+    # 'order_seg': 1,
+    # 'order_data': 3,
+    # 'deep_supervision_scales': [[1, 1, 1],
+    #                             [1.0, 0.5, 0.5],
+    #                             [1.0, 0.25, 0.25],
+    #                             [0.5, 0.125, 0.125],
+    #                             [0.5, 0.0625, 0.0625]],
+    # 'soft_ds': False,
+    # 'classes': None,
+    # 'pin_memory': True,
+    # 'regions': None
+    # params
+    # {'selected_data_channels': None,
+    #  'selected_seg_channels': [0],
+    #  'do_elastic': True,
+    #  'elastic_deform_alpha': (0.0, 300.0),
+    #  'elastic_deform_sigma': (9.0, 15.0),
+    #  'p_eldef': 0.1,
+    #  'do_scaling': True,
+    #  'scale_range': (0.65, 1.6),
+    #  'independent_scale_factor_for_each_axis': True,
+    #  'p_independent_scale_per_axis': 0.3,
+    #  'p_scale': 0.3,
+    #  'do_rotation': True,
+    #  'rotation_x': (-3.141592653589793, 3.141592653589793),
+    #  'rotation_y': (-0.5235987755982988, 0.5235987755982988),
+    #  'rotation_z': (-0.5235987755982988, 0.5235987755982988),
+    #  'rotation_p_per_axis': 1,
+    #  'p_rot': 0.7,
+    #  'random_crop': False,
+    #  'random_crop_dist_to_border': None,
+    #  'do_gamma': True,
+    #  'gamma_retain_stats': True,
+    #  'gamma_range': (0.5, 1.6),
+    #  'p_gamma': 0.3,
+    #  'do_mirror': True,
+    #  'mirror_axes': (0, 1, 2),
+    #  'dummy_2D': True,
+    #  'mask_was_used_for_normalization': OrderedDict([(0, False)]),
+    #  'border_mode_data': 'constant',
+    #  'all_segmentation_labels': None,
+    #  'move_last_seg_chanel_to_data': False,
+    #  'cascade_do_cascade_augmentations': False,
+    #  'cascade_random_binary_transform_p': 0.4,
+    #  'cascade_random_binary_transform_p_per_label': 1,
+    #  'cascade_random_binary_transform_size': (1, 8),
+    #  'cascade_remove_conn_comp_p': 0.2,
+    #  'cascade_remove_conn_comp_max_size_percent_threshold': 0.15,
+    #  'cascade_remove_conn_comp_fill_with_other_class_p': 0.0,
+    #  'do_additive_brightness': True,
+    #  'additive_brightness_p_per_sample': 0.3,
+    #  'additive_brightness_p_per_channel': 1,
+    #  'additive_brightness_mu': 0,
+    #  'additive_brightness_sigma': 0.2,
+    #  'num_threads': 12,
+    #  'num_cached_per_thread': 1,
+    #  'patch_size_for_spatialtransform': array([288, 320])}
 
+    # selected_data_channels is None
     if params.get("selected_data_channels") is not None:
         tr_transforms.append(DataChannelSelectionTransform(params.get("selected_data_channels")))
 
+    # selected_seg_channels is [0]
     if params.get("selected_seg_channels") is not None:
         tr_transforms.append(SegChannelSelectionTransform(params.get("selected_seg_channels")))
 
     # don't do color augmentations while in 2d mode with 3d data because the color channel is overloaded!!
+    # dummy_2D is True
     if params.get("dummy_2D") is not None and params.get("dummy_2D"):
         ignore_axes = (0,)
         tr_transforms.append(Convert3DTo2DTransform())
@@ -87,26 +152,31 @@ def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size, para
         GammaTransform(params.get("gamma_range"), True, True, retain_stats=params.get("gamma_retain_stats"),
                        p_per_sample=0.15))  # inverted gamma
 
+    # do_additive_brightness is True
     if params.get("do_additive_brightness"):
         tr_transforms.append(BrightnessTransform(params.get("additive_brightness_mu"),
                                                  params.get("additive_brightness_sigma"),
                                                  True, p_per_sample=params.get("additive_brightness_p_per_sample"),
                                                  p_per_channel=params.get("additive_brightness_p_per_channel")))
 
+    # do_gamma is True
     if params.get("do_gamma"):
         tr_transforms.append(
             GammaTransform(params.get("gamma_range"), False, True, retain_stats=params.get("gamma_retain_stats"),
                            p_per_sample=params["p_gamma"]))
 
+    # do_mirror is True
     if params.get("do_mirror") or params.get("mirror"):
         tr_transforms.append(MirrorTransform(params.get("mirror_axes")))
 
+    # mask_was_used_for_normalization is OrderedDict([(0, False)]),
     if params.get("mask_was_used_for_normalization") is not None:
         mask_was_used_for_normalization = params.get("mask_was_used_for_normalization")
         tr_transforms.append(MaskTransform(mask_was_used_for_normalization, mask_idx_in_seg=0, set_outside_to=0))
 
     tr_transforms.append(RemoveLabelTransform(-1, 0))
 
+    # move_last_seg_chanel_to_data is False
     if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
         tr_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
         if params.get("cascade_do_cascade_augmentations") and not None and params.get(
@@ -129,10 +199,13 @@ def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size, para
 
     tr_transforms.append(RenameTransform('seg', 'target', True))
 
+    # regions is None
     if regions is not None:
         tr_transforms.append(ConvertSegmentationToRegionsTransform(regions, 'target', 'target'))
 
+    # deep_supervision_scales is a not None
     if deep_supervision_scales is not None:
+        # soft_ds is False
         if soft_ds:
             assert classes is not None
             tr_transforms.append(DownsampleSegForDSTransform3(deep_supervision_scales, 'target', 'target', classes))
@@ -147,22 +220,29 @@ def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size, para
                                                   params.get("num_cached_per_thread"),
                                                   seeds=seeds_train, pin_memory=pin_memory)
 
+    # ========================================================
     val_transforms = []
     val_transforms.append(RemoveLabelTransform(-1, 0))
+    # selected_data_channels is None
     if params.get("selected_data_channels") is not None:
         val_transforms.append(DataChannelSelectionTransform(params.get("selected_data_channels")))
+    # selected_seg_channels is [0]
     if params.get("selected_seg_channels") is not None:
         val_transforms.append(SegChannelSelectionTransform(params.get("selected_seg_channels")))
 
+    # move_last_seg_chanel_to_data is False
     if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
         val_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
 
     val_transforms.append(RenameTransform('seg', 'target', True))
 
+    # regions is None
     if regions is not None:
         val_transforms.append(ConvertSegmentationToRegionsTransform(regions, 'target', 'target'))
 
+    # deep_supervision_scales is not None
     if deep_supervision_scales is not None:
+        # soft_ds is False
         if soft_ds:
             assert classes is not None
             val_transforms.append(DownsampleSegForDSTransform3(deep_supervision_scales, 'target', 'target', classes))

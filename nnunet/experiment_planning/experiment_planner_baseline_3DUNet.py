@@ -64,6 +64,7 @@ class ExperimentPlanner(object):
         self.conv_per_stage = 2
 
     def get_target_spacing(self):
+        # TODO why?
         spacings = self.dataset_properties['all_spacings']
 
         # target = np.median(np.vstack(spacings), 0)
@@ -75,6 +76,7 @@ class ExperimentPlanner(object):
             target_spacing_of_that_axis = np.percentile(spacings_of_that_axis, 5)
             target[worst_spacing_axis] = target_spacing_of_that_axis"""
 
+        # Since spacing is unsorted, what is the meaning of finding the np.percentile of spacing?
         target = np.percentile(np.vstack(spacings), self.target_spacing_percentile, 0)
         return target
 

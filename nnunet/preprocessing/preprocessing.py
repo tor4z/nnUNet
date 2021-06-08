@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 from collections import OrderedDict
+from typing import Union
 from batchgenerators.augmentations.utils import resize_segmentation
 from nnunet.configuration import default_num_threads, RESAMPLING_SEPARATE_Z_ANISO_THRESHOLD
 from nnunet.preprocessing.cropping import get_case_identifier_from_npz, ImageCropper
@@ -200,7 +201,8 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
 
 
 class GenericPreprocessor(object):
-    def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, transpose_forward: (tuple, list), intensityproperties=None):
+    def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, 
+                 transpose_forward: Union[tuple, list], intensityproperties=None):
         """
 
         :param normalization_scheme_per_modality: dict {0:'nonCT'}
@@ -384,7 +386,8 @@ class GenericPreprocessor(object):
             spacing = target_spacings[i]
             for j, case in enumerate(list_of_cropped_npz_files):
                 case_identifier = get_case_identifier_from_npz(case)
-                args = spacing, case_identifier, output_folder_stage, input_folder_with_cropped_npz, force_separate_z, all_classes
+                args = spacing, case_identifier, output_folder_stage, input_folder_with_cropped_npz, \
+                       force_separate_z, all_classes
                 all_args.append(args)
             p = Pool(num_threads[i])
             p.starmap(self._run_internal, all_args)
@@ -569,7 +572,8 @@ class Preprocessor3DBetterResampling(GenericPreprocessor):
 
 
 class PreprocessorFor2D(GenericPreprocessor):
-    def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, transpose_forward: (tuple, list), intensityproperties=None):
+    def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, 
+                 transpose_forward: Union[tuple, list], intensityproperties=None):
         super(PreprocessorFor2D, self).__init__(normalization_scheme_per_modality, use_nonzero_mask,
                                                 transpose_forward, intensityproperties)
 

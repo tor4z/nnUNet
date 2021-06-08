@@ -3,10 +3,13 @@ from nnunet.network_architecture.generic_UNet import Generic_UNet
 from nnunet.network_architecture.initialization import InitWeights_He
 from nnunet.training.network_training.nnUNet_variants.data_augmentation.nnUNetTrainerV2_insaneDA import \
     nnUNetTrainerV2_insaneDA
+from nnunet.training.network_training.nnUNet_variants.data_augmentation.nnUNetTrainerV2_noDA import \
+    nnUNetTrainerV2_noDataAugmentation
 from nnunet.utilities.nd_softmax import softmax_helper
 from torch import nn
 
 
+# class nnUNetTrainerV2_MMS(nnUNetTrainerV2_noDataAugmentation):
 class nnUNetTrainerV2_MMS(nnUNetTrainerV2_insaneDA):
     def setup_DA_params(self):
         super().setup_DA_params()
@@ -46,10 +49,12 @@ class nnUNetTrainerV2_MMS(nnUNetTrainerV2_insaneDA):
                                     len(self.net_num_pool_op_kernel_sizes),
                                     self.conv_per_stage, 2, conv_op, norm_op, norm_op_kwargs, dropout_op,
                                     dropout_op_kwargs,
+                                                            # deep_supervision
                                     net_nonlin, net_nonlin_kwargs, True, False, lambda x: x, InitWeights_He(1e-2),
                                     self.net_num_pool_op_kernel_sizes, self.net_conv_kernel_sizes, False, True, True)
         if torch.cuda.is_available():
             self.network.cuda()
+        # self.network.inference_apply_nonlin = nn.Sigmoid()
         self.network.inference_apply_nonlin = softmax_helper
 
     """def run_training(self):

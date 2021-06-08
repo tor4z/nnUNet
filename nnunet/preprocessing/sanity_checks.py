@@ -14,6 +14,7 @@
 
 
 from multiprocessing import Pool
+from typing import Union
 
 import SimpleITK as sitk
 import nibabel as nib
@@ -76,7 +77,7 @@ def verify_same_geometry(img_1: sitk.Image, img_2: sitk.Image):
         return False
 
 
-def verify_contains_only_expected_labels(itk_img: str, valid_labels: (tuple, list)):
+def verify_contains_only_expected_labels(itk_img: str, valid_labels: Union[tuple, list]):
     img_npy = sitk.GetArrayFromImage(sitk.ReadImage(itk_img))
     uniques = np.unique(img_npy)
     invalid_uniques = [i for i in uniques if i not in valid_labels]
@@ -117,7 +118,8 @@ def verify_dataset_integrity(folder):
     has_nan = False
 
     # check all cases
-    if len(expected_train_identifiers) != len(np.unique(expected_train_identifiers)): raise RuntimeError("found duplicate training cases in dataset.json")
+    if len(expected_train_identifiers) != len(np.unique(expected_train_identifiers)):
+        raise RuntimeError("found duplicate training cases in dataset.json")
 
     print("Verifying training set")
     for c in expected_train_identifiers:
@@ -210,9 +212,9 @@ def verify_dataset_integrity(folder):
                 reference_img = images_itk[0]
 
                 for i, img in enumerate(images_itk[1:]):
-                    assert verify_same_geometry(img, reference_img), "The modalities of the image %s do not seem to be " \
-                                                                     "registered. Please coregister your modalities." % (
-                                                                         expected_image_files[i])
+                    assert verify_same_geometry(img, reference_img), \
+                        f"The modalities of the image {expected_image_files[i]} do not seem to be registered. " +\
+                         "Please coregister your modalities."
 
             # now remove checked files from the lists nii_files_in_imagesTr and nii_files_in_labelsTr
             for i in expected_image_files:

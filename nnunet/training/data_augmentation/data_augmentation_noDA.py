@@ -33,9 +33,12 @@ def get_no_augmentation(dataloader_train, dataloader_val, params=default_3D_augm
     """
     tr_transforms = []
 
+    # 'selected_data_channels': None,
+
     if params.get("selected_data_channels") is not None:
         tr_transforms.append(DataChannelSelectionTransform(params.get("selected_data_channels")))
 
+    # 'selected_seg_channels': [0],
     if params.get("selected_seg_channels") is not None:
         tr_transforms.append(SegChannelSelectionTransform(params.get("selected_seg_channels")))
 
@@ -43,9 +46,15 @@ def get_no_augmentation(dataloader_train, dataloader_val, params=default_3D_augm
 
     tr_transforms.append(RenameTransform('seg', 'target', True))
 
+    # 'regions': None
     if regions is not None:
         tr_transforms.append(ConvertSegmentationToRegionsTransform(regions, 'target', 'target'))
 
+    # 'deep_supervision_scales': [[1, 1, 1],
+    #                             [1.0, 0.5, 0.5],
+    #                             [1.0, 0.25, 0.25],
+    #                             [0.5, 0.125, 0.125],
+    #                             [0.5, 0.0625, 0.0625]],
     if deep_supervision_scales is not None:
         if soft_ds:
             assert classes is not None

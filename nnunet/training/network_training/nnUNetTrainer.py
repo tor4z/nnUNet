@@ -18,6 +18,7 @@ from collections import OrderedDict
 from multiprocessing import Pool
 from time import sleep
 from typing import Tuple, List
+from torch.nn import functional as F
 
 import matplotlib
 import nnunet
@@ -34,7 +35,7 @@ from nnunet.postprocessing.connected_components import determine_postprocessing
 from nnunet.training.data_augmentation.default_data_augmentation import default_3D_augmentation_params, \
     default_2D_augmentation_params, get_default_augmentation, get_patch_size
 from nnunet.training.dataloading.dataset_loading import load_dataset, DataLoader3D, DataLoader2D, unpack_dataset
-from nnunet.training.loss_functions.dice_loss import DC_and_CE_loss
+from nnunet.training.loss_functions.dice_loss import DC_and_CE_loss, DC_and_BCE_loss
 from nnunet.training.network_training.network_trainer import NetworkTrainer
 from nnunet.utilities.nd_softmax import softmax_helper
 from nnunet.utilities.tensor_utilities import sum_tensor
@@ -105,6 +106,7 @@ class nnUNetTrainer(NetworkTrainer):
         self.basic_generator_patch_size = self.data_aug_params = self.transpose_forward = self.transpose_backward = None
 
         self.batch_dice = batch_dice
+        # self.loss = DC_and_BCE_loss({}, {})
         self.loss = DC_and_CE_loss({'batch_dice': self.batch_dice, 'smooth': 1e-5, 'do_bg': False}, {})
 
         self.online_eval_foreground_dc = []
@@ -400,6 +402,7 @@ class nnUNetTrainer(NetworkTrainer):
         self.load_dataset()
         self.do_split()
 
+        print('self.basic_generator_patch_size', self.basic_generator_patch_size)
         if self.threeD:
             dl_tr = DataLoader3D(self.dataset_tr, self.basic_generator_patch_size, self.patch_size, self.batch_size,
                                  False, oversample_foreground_percent=self.oversample_foreground_percent,
@@ -689,6 +692,7 @@ class nnUNetTrainer(NetworkTrainer):
             output_seg = output_softmax.argmax(1)
             target = target[:, 0]
             axes = tuple(range(1, len(target.shape)))
+
             tp_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
             fp_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
             fn_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
@@ -705,6 +709,30 @@ class nnUNetTrainer(NetworkTrainer):
             self.online_eval_tp.append(list(tp_hard))
             self.online_eval_fp.append(list(fp_hard))
             self.online_eval_fn.append(list(fn_hard))
+
+    # def run_online_evaluation(self, output, target):
+    #     with torch.no_grad():
+    #         num_classes = output.shape[0]
+    #         output_softmax = F.softmax(output, dim=0)
+    #         output_seg = output_softmax.argmax(0).unsqueeze(0)
+    #         axes = tuple(range(1, len(target.shape)))
+
+    #         tp_hard = torch.zeros((1, num_classes - 1)).to(output_seg.device.index)
+    #         fp_hard = torch.zeros((1, num_classes - 1)).to(output_seg.device.index)
+    #         fn_hard = torch.zeros((1, num_classes - 1)).to(output_seg.device.index)
+    #         for c in range(1, num_classes):
+    #             tp_hard[:, c - 1] = sum_tensor((output_seg == c).float() * (target == c).float(), axes=axes)
+    #             fp_hard[:, c - 1] = sum_tensor((output_seg == c).float() * (target != c).float(), axes=axes)
+    #             fn_hard[:, c - 1] = sum_tensor((output_seg != c).float() * (target == c).float(), axes=axes)
+
+    #         tp_hard = tp_hard.sum(0, keepdim=False).detach().cpu().numpy()
+    #         fp_hard = fp_hard.sum(0, keepdim=False).detach().cpu().numpy()
+    #         fn_hard = fn_hard.sum(0, keepdim=False).detach().cpu().numpy()
+
+    #         self.online_eval_foreground_dc.append(list((2 * tp_hard) / (2 * tp_hard + fp_hard + fn_hard + 1e-8)))
+    #         self.online_eval_tp.append(list(tp_hard))
+    #         self.online_eval_fp.append(list(fp_hard))
+    #         self.online_eval_fn.append(list(fn_hard))
 
     def finish_online_evaluation(self):
         self.online_eval_tp = np.sum(self.online_eval_tp, 0)

@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 
+from numpy.testing._private.utils import assert_raises
 import torch
 from nnunet.training.loss_functions.TopK_loss import TopKLoss
 from nnunet.training.loss_functions.crossentropy import RobustCrossEntropyLoss
@@ -338,6 +339,8 @@ class DC_and_CE_loss(nn.Module):
         :param target:
         :return:
         """
+        # print('net_output.shape', net_output.shape)
+        # print('target.shape', target.shape)
         if self.ignore_label is not None:
             assert target.shape[1] == 1, 'not implemented for one hot encoding'
             mask = target != self.ignore_label
@@ -378,7 +381,16 @@ class DC_and_BCE_loss(nn.Module):
         self.ce = nn.BCEWithLogitsLoss(**bce_kwargs)
         self.dc = SoftDiceLoss(apply_nonlin=torch.sigmoid, **soft_dice_kwargs)
 
+    def onehot(self, inp, num_classes):
+        target_shape = list(inp.shape)
+        target_shape[1] = num_classes
+        target = torch.zeros(target_shape).to(inp.device)
+        target.scatter_(1, inp.type(torch.int64), 1)
+        return target
+
     def forward(self, net_output, target):
+        target = self.onehot(target, net_output.size(1))
+        assert net_output.shape == target.shape
         ce_loss = self.ce(net_output, target)
         dc_loss = self.dc(net_output, target)
 
